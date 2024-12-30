@@ -10,25 +10,11 @@ Automatically update your macOS wallpaper with Bing's daily image.
 - 💪 Lightweight and efficient
 - ⚡️ Easy to install and use
 
-## 🚀 Installation
+## 🚀 Usage
 
-1. Clone this repository:
+Simply run the script:
 ```bash
-git clone https://github.com/luoling8192/bing-wallpaper-mac
-cd bing-wallpaper-mac
-```
-
-2. Run the installer:
-```bash
-chmod +x setup.sh
-./setup.sh
-```
-
-## 🛠️ Manual Usage
-
-You can manually update the wallpaper anytime:
-```bash
-/usr/local/bin/bing_wallpaper.sh
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/luoling8192/bing-wallpaper-mac/HEAD/setup.sh)"
 ```
 
 ## 🗑️ Uninstallation
