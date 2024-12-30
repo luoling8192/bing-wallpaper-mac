@@ -1,18 +1,21 @@
 #!/bin/bash
 
-# 定义颜色输出
+# Define colors
 GREEN='\033[0;32m'
 NC='\033[0m'
 
-# 创建必要的目录
-mkdir -p "$HOME/.wallpapers"
-mkdir -p "$HOME/Library/LaunchAgents"
+# Define base directories
+WALLPAPER_DIR="$HOME/.wallpapers"
+SCRIPT_NAME="bing_wallpaper"
 
-# 复制主脚本
-sudo cp bing_wallpaper.sh /usr/local/bin/
-sudo chmod +x /usr/local/bin/bing_wallpaper.sh
+# Create wallpaper directory
+mkdir -p "$WALLPAPER_DIR"
 
-# 创建 LaunchAgent 配置文件
+# Copy main script and set permissions
+sudo cp ${SCRIPT_NAME}.sh /usr/local/bin/${SCRIPT_NAME}
+sudo chmod +x /usr/local/bin/${SCRIPT_NAME}
+
+# Create LaunchAgent configuration file
 cat > "$HOME/Library/LaunchAgents/com.${USER}.bingwallpaper.plist" << EOL
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -22,7 +25,7 @@ cat > "$HOME/Library/LaunchAgents/com.${USER}.bingwallpaper.plist" << EOL
     <string>com.${USER}.bingwallpaper</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/local/bin/bing_wallpaper.sh</string>
+        <string>/usr/local/bin/${SCRIPT_NAME}</string>
     </array>
     <key>StartCalendarInterval</key>
     <dict>
@@ -32,17 +35,23 @@ cat > "$HOME/Library/LaunchAgents/com.${USER}.bingwallpaper.plist" << EOL
         <integer>0</integer>
     </dict>
     <key>StandardErrorPath</key>
-    <string>/tmp/bing_wallpaper.err</string>
+    <string>${HOME}/.wallpapers/bing_wallpaper.err</string>
     <key>StandardOutPath</key>
-    <string>/tmp/bing_wallpaper.out</string>
+    <string>${HOME}/.wallpapers/bing_wallpaper.out</string>
 </dict>
 </plist>
 EOL
 
-# 加载服务
+# Load service
 launchctl load "$HOME/Library/LaunchAgents/com.${USER}.bingwallpaper.plist"
 
-# 立即运行一次
-/usr/local/bin/bing_wallpaper.sh
+# Run immediately
+/usr/local/bin/${SCRIPT_NAME}
 
-echo -e "${GREEN}安装完成！每天早上9点将自动更换壁纸。${NC}"
+echo -e "${GREEN}Installation completed!${NC}"
+echo -e "📋 Installation details:"
+echo -e "  • Script location: /usr/local/bin/${SCRIPT_NAME}"
+echo -e "  • Wallpaper directory: ${WALLPAPER_DIR}"
+echo -e "  • Log files: ${WALLPAPER_DIR}/bing_wallpaper.{out,err}"
+echo -e "  • Auto-updates daily at 9 AM"
+echo -e "  • Run '${SCRIPT_NAME}' to update manually"
