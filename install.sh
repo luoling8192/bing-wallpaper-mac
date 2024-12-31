@@ -14,7 +14,7 @@ SCRIPT_PATH="/usr/local/bin/${SCRIPT_NAME}"
 
 # Check for jq dependency
 check_dependencies() {
-    if ! command -v jq &> /dev/null; then
+    if ! command -v jq &>/dev/null; then
         echo -e "${RED}Error: jq is required but not installed.${NC}"
         echo "Please install jq first:"
         echo "  Homebrew: brew install jq"
@@ -35,7 +35,7 @@ install_or_update() {
     sudo chmod +x ${SCRIPT_PATH}
 
     # Create or update LaunchAgent configuration file
-    cat > "$HOME/Library/LaunchAgents/com.${USER}.bingwallpaper.plist" << EOL
+    cat >"$HOME/Library/LaunchAgents/com.${USER}.bingwallpaper.plist" <<EOL
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
