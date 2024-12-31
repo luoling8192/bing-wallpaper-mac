@@ -14,17 +14,14 @@ Automatically update your macOS wallpaper with Bing's daily image.
 
 Simply run the script:
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/luoling8192/bing-wallpaper-mac/HEAD/setup.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/luoling8192/bing-wallpaper-mac/HEAD/install.sh)"
 ```
 
 ## 🗑️ Uninstallation
 
 To remove the app:
 ```bash
-launchctl unload ~/Library/LaunchAgents/com.${USER}.bingwallpaper.plist
-rm ~/Library/LaunchAgents/com.${USER}.bingwallpaper.plist
-sudo rm /usr/local/bin/bing_wallpaper.sh
-rm -rf ~/.wallpapers
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/luoling8192/bing-wallpaper-mac/HEAD/uninstall.sh)"
 ```
 
 ## 📁 File Structure
