@@ -4,7 +4,7 @@ Automatically update your macOS wallpaper with Bing's daily image.
 
 ## ✨ Features
 
-- 🔄 Auto-updates wallpaper daily at 9 AM
+- 🔄 Auto-updates wallpaper every hour
 - 🖼️ Downloads high-quality images from Bing
 - 🧹 Auto-cleans wallpapers older than 7 days
 - 💪 Lightweight and efficient
