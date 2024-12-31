@@ -39,17 +39,6 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/luoling8192/bing-wallpap
 The script can be configured using the following commands:
 
 ```bash
-# Show help message
-bing_wallpaper --help
-
-# Output:
-# Usage: bing_wallpaper [OPTIONS]
-#
-# Options:
-#   --help, -h        Show this help message
-#   --config          Configure settings
-#   --show-config     Show current configuration
-
 # Run configuration wizard
 bing_wallpaper --config
 

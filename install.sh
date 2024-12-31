@@ -45,6 +45,7 @@ install_or_update() {
     <key>ProgramArguments</key>
     <array>
         <string>${SCRIPT_PATH}</string>
+        <string>--force</string>
     </array>
     <key>StartInterval</key>
     <integer>3600</integer>

@@ -153,50 +153,80 @@ download_bing_wallpaper() {
         echo "Using wallpaper resolution: $(get_resolution_name "$target_resolution")"
     fi
     
-    # Get Bing wallpaper JSON data
-    local bing_json
-    bing_json=$(curl -s "https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1")
-    
-    # Extract base wallpaper URL using jq
-    local base_url
-    base_url="https://www.bing.com$(echo "$bing_json" | jq -r '.images[0].url')"
-    
-    # Get image metadata
-    local image_title
-    image_title=$(echo "$bing_json" | jq -r '.images[0].title')
-    local image_copyright
-    image_copyright=$(echo "$bing_json" | jq -r '.images[0].copyright')
-    
-    # Modify URL based on resolution
-    local image_url
-    local resolution_value=$(get_resolution_value "$target_resolution")
-    if [ -n "$resolution_value" ]; then
-        image_url=$(echo "$base_url" | sed "s/1920x1080/$resolution_value/")
-    else
-        image_url="$base_url"
-    fi
-    
     # Get current date as filename
     local current_date
     current_date=$(date +%Y%m%d)
     local wallpaper_path="$SAVE_PATH/bing_${current_date}_${target_resolution}.jpg"
+    local metadata_path="${wallpaper_path%.*}.txt"
     
-    # Create directory if not exists
-    mkdir -p "$SAVE_PATH"
-    
-    # Download wallpaper
-    if curl -s "$image_url" -o "$wallpaper_path"; then
-        echo "Downloaded: $image_title"
-        echo "Copyright: $image_copyright"
-        # Save metadata
-        echo "$image_title" > "${wallpaper_path%.*}.txt"
-        echo "$image_copyright" >> "${wallpaper_path%.*}.txt"
-    else
-        echo "Error: Failed to download wallpaper"
-        return 1
+    # Check if today's wallpaper already exists
+    local should_download=true
+    if [ -f "$wallpaper_path" ] && [ "$FORCE_DOWNLOAD" != "true" ]; then
+        echo "Found existing wallpaper for today"
+        if [ -f "$metadata_path" ]; then
+            echo "Current wallpaper:"
+            echo "Title: $(head -n1 "$metadata_path")"
+            echo "Copyright: $(tail -n1 "$metadata_path")"
+        fi
+        
+        read -p "Do you want to redownload? (y/n): " redownload
+        if [[ ! "$redownload" =~ ^[Yy]$ ]]; then
+            echo "Using existing wallpaper"
+            should_download=false
+        fi
     fi
     
+    if [ "$should_download" = true ]; then
+        # Remove existing files if they exist
+        rm -f "$wallpaper_path" "$metadata_path"
+        
+        # Get Bing wallpaper JSON data
+        local bing_json
+        bing_json=$(curl -s "https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1")
+        
+        # Extract base wallpaper URL using jq
+        local base_url
+        base_url="https://www.bing.com$(echo "$bing_json" | jq -r '.images[0].url')"
+        echo "Base URL: $base_url"
+        
+        # Get image metadata
+        local image_title
+        image_title=$(echo "$bing_json" | jq -r '.images[0].title')
+        local image_copyright
+        image_copyright=$(echo "$bing_json" | jq -r '.images[0].copyright')
+        
+        # Modify URL based on resolution
+        local image_url
+        local resolution_value=$(get_resolution_value "$target_resolution")
+        if [ -n "$resolution_value" ]; then
+            image_url=$(echo "$base_url" | sed "s/1920x1080/$resolution_value/")
+            echo "Modified URL for ${resolution_value}: $image_url"
+        else
+            image_url="$base_url"
+            echo "Using default URL: $image_url"
+        fi
+        
+        # Create directory if not exists
+        mkdir -p "$SAVE_PATH"
+        
+        # Download wallpaper
+        echo "Downloading wallpaper..."
+        if curl -s "$image_url" -o "$wallpaper_path"; then
+            echo "✓ Download successful"
+            echo "Title: $image_title"
+            echo "Copyright: $image_copyright"
+            # Save metadata
+            echo "$image_title" > "$metadata_path"
+            echo "$image_copyright" >> "$metadata_path"
+        else
+            echo "✗ Error: Failed to download wallpaper"
+            return 1
+        fi
+    fi
+    
+    # Always return the wallpaper path, whether it's new or existing
     echo "$wallpaper_path"
+    return 0
 }
 
 # Set desktop wallpaper
@@ -226,6 +256,7 @@ main() {
             echo "  --help, -h        Show this help message"
             echo "  --config          Configure settings"
             echo "  --show-config     Show current configuration"
+            echo "  --force, -f       Force download without asking"
             exit 0
             ;;
         --config)
@@ -238,12 +269,49 @@ main() {
             ;;
     esac
 
+    # Set force flag based on argument
+    local force_download=false
+    if [ "$1" = "--force" ] || [ "$1" = "-f" ]; then
+        force_download=true
+    fi
+
     # Normal operation
     load_config
-    wallpaper_path=$(download_bing_wallpaper)
-    if [ $? -eq 0 ]; then
+    
+    # Run download with output
+    echo "Starting Bing wallpaper update..."
+    echo "----------------------------------------"
+    
+    # Capture both output and return value
+    local output
+    if [ "$force_download" = true ]; then
+        output=$(FORCE_DOWNLOAD=true download_bing_wallpaper)
+    else
+        output=$(download_bing_wallpaper)
+    fi
+    local status=$?
+    
+    # Print the output
+    echo "$output"
+    echo "----------------------------------------"
+    
+    # Get the last line (wallpaper path) if successful
+    if [ $status -eq 0 ]; then
+        local wallpaper_path
+        wallpaper_path=$(echo "$output" | tail -n1)
+        
+        echo "Setting wallpaper..."
         set_wallpaper "$wallpaper_path"
-        cleanup_old_wallpapers
+        
+        if [[ "$AUTO_CLEANUP" == "true" ]]; then
+            echo "Running cleanup..."
+            cleanup_old_wallpapers
+        fi
+        
+        echo "✓ Wallpaper update completed"
+    else
+        echo "✗ Failed to update wallpaper"
+        exit 1
     fi
 }
 
