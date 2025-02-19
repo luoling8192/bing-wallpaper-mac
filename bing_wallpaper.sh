@@ -9,6 +9,9 @@ DEFAULT_CONFIG=(
     "SAVE_PATH=$HOME/.wallpapers" # Where to save wallpapers
 )
 
+BING_JSON_ENDPOINT="https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1"
+BING_WALLPAPER_ENDPOINT="https://www.bing.com"
+
 # Resolution definitions
 RESOLUTION_UHD="3840x2160"
 RESOLUTION_FHD="1920x1080"
@@ -187,29 +190,22 @@ download_bing_wallpaper() {
 
         # Get Bing wallpaper JSON data
         local bing_json
-        bing_json=$(curl -s "https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1")
+        bing_json=$(curl -s "$BING_JSON_ENDPOINT")
 
-        # Extract base wallpaper URL using jq
-        local base_url
-        base_url="https://www.bing.com$(echo "$bing_json" | jq -r '.images[0].url')"
-        echo "Base URL: $base_url"
+        # Create wallpaper URL using jq to extract image base URL and append resolution
+        local image_base_url
+        image_base_url=$(echo "$bing_json" | jq -r '.images[0].urlbase')
+        local image_resolution_value
+        image_resolution_value=$(get_resolution_value "$target_resolution")
+        local image_url
+        image_url="${BING_WALLPAPER_ENDPOINT}${image_base_url}_${image_resolution_value}.jpg"
+        echo "Image URL for $target_resolution: ${image_url}"
 
         # Get image metadata
         local image_title
         image_title=$(echo "$bing_json" | jq -r '.images[0].title')
         local image_copyright
         image_copyright=$(echo "$bing_json" | jq -r '.images[0].copyright')
-
-        # Modify URL based on resolution
-        local image_url
-        local resolution_value=$(get_resolution_value "$target_resolution")
-        if [ -n "$resolution_value" ]; then
-            image_url=$(echo "$base_url" | sed "s/1920x1080/$resolution_value/")
-            echo "Modified URL for ${resolution_value}: $image_url"
-        else
-            image_url="$base_url"
-            echo "Using default URL: $image_url"
-        fi
 
         # Create directory if not exists
         mkdir -p "$SAVE_PATH"
