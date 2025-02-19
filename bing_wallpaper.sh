@@ -94,16 +94,21 @@ show_config() {
 set_config() {
     local key=$1
     local value=$2
-    local temp_file=$(mktemp)
+    local temp_file
+    temp_file=$(mktemp)
 
-    if grep -q "^$key=" "$CONFIG_FILE"; then
-        sed "s|^$key=.*|$key=$value|" "$CONFIG_FILE" >"$temp_file"
+    if [[ -f "$CONFIG_FILE" ]]; then
+        if grep -q "^$key=" "$CONFIG_FILE"; then
+            sed "s|^$key=.*|$key=$value|" "$CONFIG_FILE" >"$temp_file"
+        else
+            cp "$CONFIG_FILE" "$temp_file"
+            echo "$key=$value" >>"$temp_file"
+        fi
+        mv "$temp_file" "$CONFIG_FILE"
     else
-        cp "$CONFIG_FILE" "$temp_file"
-        echo "$key=$value" >>"$temp_file"
+        echo "$key=$value" >"$temp_file"
+        mv "$temp_file" "$CONFIG_FILE"
     fi
-
-    mv "$temp_file" "$CONFIG_FILE"
 }
 
 configure() {
