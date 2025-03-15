@@ -278,6 +278,10 @@ main() {
 
     # Normal operation
     load_config
+    if [ $? -ne 0 ]; then
+        echo "✗ Failed loading config"
+        exit 1
+    fi
 
     # Run download with output
     echo "Starting Bing wallpaper update..."
